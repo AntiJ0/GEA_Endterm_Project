@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &6580547304444069585
+--- !u!1 &2329179957340627391
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,65 +8,65 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6115266329002410896}
-  - component: {fileID: -5905928841457526586}
-  - component: {fileID: 3665988472129753108}
-  - component: {fileID: 3300399563083505088}
-  - component: {fileID: 2704845421462865409}
+  - component: {fileID: 6875593102414992082}
+  - component: {fileID: 4481397723297199004}
+  - component: {fileID: 7289133530103676646}
+  - component: {fileID: 5209473599803968869}
+  - component: {fileID: 8338803356075581735}
   m_Layer: 0
-  m_Name: Water
+  m_Name: Bedrock
   m_TagString: Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6115266329002410896
+--- !u!4 &6875593102414992082
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6580547304444069585}
+  m_GameObject: {fileID: 2329179957340627391}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.292, y: 0.75361454, z: -21.1866}
+  m_LocalPosition: {x: 10.192898, y: 0.75361454, z: -21.1866}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-5905928841457526586
+--- !u!114 &4481397723297199004
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6580547304444069585}
+  m_GameObject: {fileID: 2329179957340627391}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 25edd83ca05f44946b7f94bd7f311238, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 2
-  maxHp: 3
+  type: 3
+  maxHp: 2
   hp: 0
   dropCount: 1
-  mineable: 1
---- !u!33 &3665988472129753108
+  mineable: 0
+--- !u!33 &7289133530103676646
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6580547304444069585}
+  m_GameObject: {fileID: 2329179957340627391}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &3300399563083505088
+--- !u!23 &5209473599803968869
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6580547304444069585}
+  m_GameObject: {fileID: 2329179957340627391}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -80,7 +80,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: bc1d744d44f02ce4fbb38a8056472a60, type: 2}
+  - {fileID: 2100000, guid: 4e5d240795668c44cb31b999c17bf454, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -102,13 +102,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &2704845421462865409
+--- !u!65 &8338803356075581735
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6580547304444069585}
+  m_GameObject: {fileID: 2329179957340627391}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -117,7 +117,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3

@@ -181,9 +181,16 @@ public class PlayerBuilder : MonoBehaviour
         foreach (var c in overlaps)
         {
             if (c == null) continue;
+
             if (c.GetComponent<Block>() != null)
             {
-                Debug.Log("[Builder] 설치 위치가 이미 차있음.");
+                Debug.Log("[Builder] 설치 위치에 블록이 이미 있습니다.");
+                return;
+            }
+
+            if (c.CompareTag("Player") || c.GetComponent<PlayerController>() != null)
+            {
+                Debug.Log("[Builder] 플레이어와 겹쳐 블록을 설치할 수 없습니다.");
                 return;
             }
         }
