@@ -8,6 +8,8 @@ public class UIInventory : MonoBehaviour
     public Sprite dirtIcon;
     public Sprite grassIcon;
     public Sprite waterIcon;
+    public Sprite beefIcon;   
+    public Sprite porkIcon;   
 
     private Dictionary<BlockType, Sprite> icons = new();
     private Inventory _inventory;
@@ -19,6 +21,8 @@ public class UIInventory : MonoBehaviour
         icons[BlockType.Dirt] = dirtIcon;
         icons[BlockType.Grass] = grassIcon;
         icons[BlockType.Water] = waterIcon;
+        icons[BlockType.Beef] = beefIcon;
+        icons[BlockType.Pork] = porkIcon;
     }
 
     void Start()
@@ -28,6 +32,29 @@ public class UIInventory : MonoBehaviour
         {
             _inventory.OnChanged += RefreshUI;
             RefreshUI();
+        }
+    }
+
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(1)) 
+        {
+            if (selectedIndex >= 0 && selectedIndex < slots.Length)
+            {
+                var bt = GetSelectedBlockType();
+                if (bt == BlockType.Beef || bt == BlockType.Pork)
+                {
+                    var player = FindObjectOfType<PlayerController>();
+                    if (player != null && !player.IsEating)
+                    {
+                        bool consumed = player.StartEating(bt.Value, 2.5f);
+                        if (consumed)
+                        {
+                            RefreshUI();
+                        }
+                    }
+                }
+            }
         }
     }
 

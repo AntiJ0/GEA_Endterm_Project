@@ -1,24 +1,26 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement Settings")]
-    public float moveSpeed = 5f;            
-    public float waterMoveSpeed = 2f;       
+    public float moveSpeed = 5f;
+    public float waterMoveSpeed = 2f;
     public float jumpPower = 5f;
 
     [Header("Gravity Settings")]
-    public float normalGravity = -9.81f;    
-    public float waterGravity = -2f;        
+    public float normalGravity = -9.81f;
+    public float waterGravity = -2f;
     public float floatUpSpeed = 2f;
 
     [Header("Water Exit Slow Settings")]
-    public float waterExitSlowDuration = 0.5f;  
+    public float waterExitSlowDuration = 0.5f;
 
     [Header("Mouse Look")]
     public float mouseSensitivity = 3f;
+
+    [Header("Eating Settings")]
+    public float eatingMoveSpeedMultiplier = 0.4f; 
 
     float xRotation = 0f;
     CharacterController controller;
@@ -30,7 +32,12 @@ public class PlayerController : MonoBehaviour
     int waterContactCount = 0;
     float currentGravity;
 
-    float waterSlowTimer = 0f;   
+    float waterSlowTimer = 0f;
+
+    public bool IsEating { get; private set; } = false;
+    PlayerHarvester harvester;
+    Inventory inventory;
+    UIInventory uiInventory;
 
     void Awake()
     {
@@ -42,8 +49,11 @@ public class PlayerController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
         currentGravity = normalGravity;
+
+        harvester = FindObjectOfType<PlayerHarvester>();
+        inventory = FindObjectOfType<Inventory>();
+        uiInventory = FindObjectOfType<UIInventory>();
     }
 
     void Update()
@@ -51,37 +61,28 @@ public class PlayerController : MonoBehaviour
         HandleMove();
         HandleLook();
 
-        if (waterSlowTimer > 0)
-            waterSlowTimer -= Time.deltaTime;
+        if (waterSlowTimer > 0) waterSlowTimer -= Time.deltaTime;
     }
 
     void HandleMove()
     {
         isGrounded = controller.isGrounded;
-
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f;
+        if (isGrounded && velocity.y < 0) velocity.y = -2f;
 
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-
         Vector3 moveDir = transform.right * h + transform.forward * v;
 
         float finalSpeed = moveSpeed;
+        if (waterContactCount > 0) finalSpeed = waterMoveSpeed;
+        else if (waterSlowTimer > 0) finalSpeed = waterMoveSpeed;
 
-        if (waterContactCount > 0)
-        {
-            finalSpeed = waterMoveSpeed;
-        }
-        else if (waterSlowTimer > 0)
-        {
-            finalSpeed = waterMoveSpeed;
-        }
+        if (IsEating) finalSpeed *= eatingMoveSpeedMultiplier;
 
         controller.Move(moveDir * finalSpeed * Time.deltaTime);
 
         if (Input.GetButtonDown("Jump") && isGrounded)
-            velocity.y = Mathf.Sqrt(jumpPower * -2f * normalGravity);
+            velocity.y = Mathf.Sqrt(jumpPower * -2f * currentGravity);
 
         if (waterContactCount > 0 && Input.GetButton("Jump"))
         {
@@ -101,7 +102,6 @@ public class PlayerController : MonoBehaviour
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
         transform.Rotate(Vector3.up * mouseX);
-
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -100f, 100f);
         cam.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
@@ -110,7 +110,6 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Block block = other.GetComponent<Block>();
-
         if (block != null && block.type == BlockType.Water)
         {
             waterContactCount++;
@@ -121,19 +120,35 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         Block block = other.GetComponent<Block>();
-
         if (block != null && block.type == BlockType.Water)
         {
             waterContactCount--;
-
             if (waterContactCount <= 0)
             {
                 waterContactCount = 0;
-
                 waterSlowTimer = waterExitSlowDuration;
-
                 currentGravity = normalGravity;
             }
         }
+    }
+
+    public bool StartEating(BlockType itemType, float duration)
+    {
+        if (IsEating) return false;
+        if (inventory == null) inventory = FindObjectOfType<Inventory>();
+        if (inventory == null) return false;
+
+        bool consumed = inventory.Consume(itemType, 1);
+        if (!consumed) return false;
+
+        StartCoroutine(EatingCoroutine(duration));
+        return true;
+    }
+
+    IEnumerator EatingCoroutine(float duration)
+    {
+        IsEating = true;
+        yield return new WaitForSeconds(duration);
+        IsEating = false;
     }
 }

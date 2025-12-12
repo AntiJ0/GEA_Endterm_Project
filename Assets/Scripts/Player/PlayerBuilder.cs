@@ -79,6 +79,12 @@ public class PlayerBuilder : MonoBehaviour
         }
     }
 
+    private bool IsPlaceableBlock(BlockType? bt)
+    {
+        if (bt == null) return false;
+        return bt == BlockType.Dirt || bt == BlockType.Grass || bt == BlockType.Water;
+    }
+
     void UpdateGhost()
     {
         bool shouldBeActive = false;
@@ -97,6 +103,15 @@ public class PlayerBuilder : MonoBehaviour
             return;
         }
 
+        var bt = _uiInv.GetSelectedBlockType();
+        if (!IsPlaceableBlock(bt))
+        {
+            // 선택된 아이템이 블록이 아님 -> ghost 비활성화
+            SetGhostActive(false);
+            return;
+        }
+
+        // 기존 Raycast & overlap 검사 계속 (placePos 계산)
         Ray ray = _cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         if (Physics.Raycast(ray, out var hit, rayDistance, hitMask))
         {
@@ -116,6 +131,7 @@ public class PlayerBuilder : MonoBehaviour
                 return;
             }
 
+            // 충돌 검사 동일
             Vector3 smallHalf = blockHalfExtents * 0.9f;
             Collider[] overlaps = Physics.OverlapBox(placePos, smallHalf, Quaternion.identity, hitMask);
             bool occupied = false;
@@ -174,7 +190,11 @@ public class PlayerBuilder : MonoBehaviour
     {
         if (_uiInv == null || _inventory == null) return;
         var bt = _uiInv.GetSelectedBlockType();
-        if (bt == null) return;
+        if (!IsPlaceableBlock(bt))
+        {
+            Debug.Log("[Builder] 선택된 아이템은 블록이 아님. 설치 불가.");
+            return;
+        }
 
         Vector3 smallHalf = blockHalfExtents * 0.9f;
         Collider[] overlaps = Physics.OverlapBox(_lastGhostPos, smallHalf, Quaternion.identity, hitMask);
