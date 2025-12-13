@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb03cb0cc578bbb4a83524b6635fe556, type: 3}
+  m_Name: SkeletonData
+  m_EditorClassIdentifier: 
+  animalName: Skeleton
+  prefab: {fileID: 6838441178959227361, guid: 7b43d16ed4e817e4eb3c60aa4f19e7bf, type: 3}
+  maxHp: 15
+  walkSpeed: 2
+  fleeSpeed: 2.5
+  fleeWhenAttacked: 0
+  fleeWhenPlayerNear: 0
+  fleeDistance: 6
+  useRandomRotation: 1
+  dropType: 5
+  dropMin: 0
+  dropMax: 0
+  dropChance: 0

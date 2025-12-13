@@ -27,7 +27,7 @@ public class AnimalBase : MonoBehaviour
 
     int hp;
     CharacterController controller;
-    Transform player;
+    protected Transform player;
 
     Vector3 planarDir = Vector3.zero;
     float verticalVelocity = 0f;
@@ -91,7 +91,7 @@ public class AnimalBase : MonoBehaviour
             verticalVelocity = -2f;
     }
 
-    void HandleBehavior()
+    protected virtual void HandleBehavior()
     {
         if (isScared && player != null)
         {
@@ -143,7 +143,7 @@ public class AnimalBase : MonoBehaviour
         wanderDir = new Vector3(r.x, 0f, r.y);
     }
 
-    void SetPlanarDirection(Vector3 desiredVelocity)
+    protected void SetPlanarDirection(Vector3 desiredVelocity)
     {
         if (desiredVelocity.sqrMagnitude > 0.0001f)
         {
@@ -186,13 +186,13 @@ public class AnimalBase : MonoBehaviour
         planarDir = desiredVelocity;
     }
 
-    void SetRotation(Vector3 dir)
+    protected void SetRotation(Vector3 dir)
     {
         if (dir.sqrMagnitude < 0.0001f) return;
         targetRotation = Quaternion.LookRotation(dir.normalized);
     }
 
-    void ApplyRotation(float dt)
+    protected void ApplyRotation(float dt)
     {
         Quaternion smoothed = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * dt);
         Vector3 e = smoothed.eulerAngles;
@@ -201,7 +201,7 @@ public class AnimalBase : MonoBehaviour
         transform.rotation = Quaternion.Euler(e);
     }
 
-    void ApplyGravity(float dt)
+    protected void ApplyGravity(float dt)
     {
         if (isInWater)
         {
@@ -234,7 +234,7 @@ public class AnimalBase : MonoBehaviour
         if (hp <= 0) Die();
     }
 
-    void UpdateScaredState()
+    protected void UpdateScaredState()
     {
         if (isScared && Time.time >= scaredEndTime) isScared = false;
     }

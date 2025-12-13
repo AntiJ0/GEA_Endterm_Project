@@ -151,6 +151,7 @@ GameObject:
   - component: {fileID: 2520965240448906959}
   - component: {fileID: 733321309863933666}
   - component: {fileID: 8256030691717784896}
+  - component: {fileID: 8818796453347029526}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -269,6 +270,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
+  waterMoveSpeed: 2
   jumpPower: 1.5
-  gravity: -9.81
+  maxHp: 20
+  curHp: 0
+  normalGravity: -9.81
+  waterGravity: -2
+  floatUpSpeed: 2
+  waterExitSlowDuration: 0.5
   mouseSensitivity: 3
+  eatingMoveSpeedMultiplier: 0.4
+--- !u!65 &8818796453347029526
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6700163826174235856}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.80680084, y: 1.3609924, z: 0.8739023}
+  m_Center: {x: -0.0030887127, y: 0.7912607, z: 0.0065493584}
