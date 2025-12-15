@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &7418895041415051114
+--- !u!1 &2263968046675899147
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,65 +8,65 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7623283270971651027}
-  - component: {fileID: -6852419037908225311}
-  - component: {fileID: 8351592405673455674}
-  - component: {fileID: 7692686940840784739}
-  - component: {fileID: 1743472785659754910}
+  - component: {fileID: 6460023704271970319}
+  - component: {fileID: 7387611401547419078}
+  - component: {fileID: 5999336742660040307}
+  - component: {fileID: 2815337275370713376}
+  - component: {fileID: 3537927441383741165}
   m_Layer: 0
-  m_Name: Dirt
+  m_Name: Diamond
   m_TagString: Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7623283270971651027
+--- !u!4 &6460023704271970319
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7418895041415051114}
+  m_GameObject: {fileID: 2263968046675899147}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.893, y: 0.75361454, z: -21.1866}
+  m_LocalPosition: {x: 10.192898, y: 0.75361454, z: -21.1866}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-6852419037908225311
+--- !u!114 &7387611401547419078
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7418895041415051114}
+  m_GameObject: {fileID: 2263968046675899147}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 25edd83ca05f44946b7f94bd7f311238, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
-  maxHp: 2
+  type: 9
+  maxHp: 15
   hp: 0
   dropCount: 1
   mineable: 1
---- !u!33 &8351592405673455674
+--- !u!33 &5999336742660040307
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7418895041415051114}
+  m_GameObject: {fileID: 2263968046675899147}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &7692686940840784739
+--- !u!23 &2815337275370713376
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7418895041415051114}
+  m_GameObject: {fileID: 2263968046675899147}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -80,7 +80,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 256b5dfd9a54a874ea2aaf9a8780febc, type: 2}
+  - {fileID: 2100000, guid: 024eba4107946b74c99af94a5bad1555, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -102,13 +102,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1743472785659754910
+--- !u!65 &3537927441383741165
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7418895041415051114}
+  m_GameObject: {fileID: 2263968046675899147}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2

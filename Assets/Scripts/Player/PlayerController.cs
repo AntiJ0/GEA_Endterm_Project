@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -31,6 +29,19 @@ public class PlayerController : MonoBehaviour
     [Header("Knockback")]
     public float knockbackDuration = 0.2f;
 
+    [Header("Hunger")]
+    public int maxHunger = 16;
+    public int curHunger = 16;
+    public float starvationDamageInterval = 5f;
+
+    public float hungerDecreaseInterval = 10f;
+    public float regenHpInterval = 1f;
+
+    float starvationTimer = 0f;
+    float hungerTimer = 0f;
+    float hpRegenTimer = 0f;
+    int regenHpStack = 0;
+
     float xRotation = 0f;
 
     CharacterController controller;
@@ -59,13 +70,15 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         curHp = maxHp;
-        UIPlayerHP.Instance?.Refresh(curHp, maxHp);
+        curHunger = maxHunger;
+
+        UIPlayerStat.Instance?.RefreshHP(curHp, maxHp);
+        UIPlayerStat.Instance?.RefreshHunger(curHunger, maxHunger);
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
         currentGravity = normalGravity;
-
         inventory = FindObjectOfType<Inventory>();
     }
 
@@ -76,6 +89,9 @@ public class PlayerController : MonoBehaviour
 
         if (waterSlowTimer > 0)
             waterSlowTimer -= Time.deltaTime;
+
+        HandleInventoryEatInput(); 
+        HandleHungerAndRegen();
     }
 
     void HandleMove()
@@ -152,22 +168,46 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void HandleInventoryEatInput()
+    {
+        if (IsEating) return;
+
+        var uiInv = FindObjectOfType<UIInventory>();
+        if (uiInv == null) return;
+
+        if (Input.GetMouseButtonDown(1)) 
+        {
+            var selectedType = uiInv.GetSelectedBlockType();
+            if (selectedType == null) return;
+
+            if (selectedType == BlockType.Beef || selectedType == BlockType.Pork)
+            {
+                StartEating(selectedType.Value, 2f); 
+            }
+        }
+    }
+
     public bool StartEating(BlockType itemType, float duration)
     {
         if (IsEating) return false;
         if (inventory == null) return false;
 
-        if (!inventory.Consume(itemType, 1))
-            return false;
-
-        StartCoroutine(EatingCoroutine(duration));
+        StartCoroutine(EatingCoroutine(itemType, duration));
         return true;
     }
 
-    IEnumerator EatingCoroutine(float duration)
+    IEnumerator EatingCoroutine(BlockType itemType, float duration)
     {
         IsEating = true;
-        yield return new WaitForSeconds(duration);
+
+        yield return new WaitForSeconds(duration); 
+
+        if (inventory.Consume(itemType, 1))
+        {
+            curHunger = Mathf.Min(maxHunger, curHunger + 8);
+            UIPlayerStat.Instance?.RefreshHunger(curHunger, maxHunger);
+        }
+
         IsEating = false;
     }
 
@@ -176,7 +216,7 @@ public class PlayerController : MonoBehaviour
         curHp -= dmg;
         if (curHp < 0) curHp = 0;
 
-        UIPlayerHP.Instance?.Refresh(curHp, maxHp);
+        UIPlayerStat.Instance?.RefreshHP(curHp, maxHp);
 
         Vector3 dir = (transform.position - attackerPos);
         dir.y = 0.3f;
@@ -200,7 +240,75 @@ public class PlayerController : MonoBehaviour
         {
             gameOverPanel.SetActive(true);
         }
+    }
 
-        Destroy(gameObject);
+    void HandleHungerAndRegen()
+    {
+        bool canRegen = curHunger >= 14 && curHp < maxHp;
+
+        if (canRegen)
+        {
+            hpRegenTimer += Time.deltaTime;
+
+            if (hpRegenTimer >= regenHpInterval)
+            {
+                hpRegenTimer -= regenHpInterval;
+
+                curHp++;
+                if (curHp > maxHp) curHp = maxHp;
+
+                regenHpStack++;
+
+                if (regenHpStack >= 3)
+                {
+                    regenHpStack = 0;
+                    curHunger = Mathf.Max(0, curHunger - 1);
+                    UIPlayerStat.Instance?.RefreshHunger(curHunger, maxHunger);
+                }
+
+                UIPlayerStat.Instance?.RefreshHP(curHp, maxHp);
+            }
+
+            starvationTimer = 0f;
+            hungerTimer = 0f;
+        }
+        else
+        {
+            hpRegenTimer = 0f;
+            regenHpStack = 0;
+
+            if (curHunger <= 0)
+            {
+                starvationTimer += Time.deltaTime;
+
+                if (starvationTimer >= starvationDamageInterval)
+                {
+                    starvationTimer -= starvationDamageInterval;
+
+                    curHp--;
+                    if (curHp < 0) curHp = 0;
+
+                    UIPlayerStat.Instance?.RefreshHP(curHp, maxHp);
+
+                    if (curHp <= 0)
+                        Die();
+                }
+
+                hungerTimer = 0f;
+            }
+            else
+            {
+                hungerTimer += Time.deltaTime;
+
+                if (hungerTimer >= hungerDecreaseInterval)
+                {
+                    hungerTimer -= hungerDecreaseInterval;
+                    curHunger = Mathf.Max(0, curHunger - 1);
+                    UIPlayerStat.Instance?.RefreshHunger(curHunger, maxHunger);
+                }
+
+                starvationTimer = 0f;
+            }
+        }
     }
 }

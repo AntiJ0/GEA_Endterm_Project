@@ -6,55 +6,54 @@ public class PlayerBuilder : MonoBehaviour
     public float rayDistance = 5f;
     public LayerMask hitMask = ~0;
 
-    [Header("블록 프리팹 (각 BlockType에 맞게 연결)")]
+    [Header("블록 프리팹")]
     public GameObject dirtPrefab;
     public GameObject grassPrefab;
     public GameObject waterPrefab;
+    public GameObject stonePrefab;
+    public GameObject woodPrefab;
+    public GameObject diamondPrefab;
 
-    [Header("희미한 블록(ghost) 프리팹 - 동일한 크기여야 함")]
+    [Header("Ghost")]
     public GameObject ghostPrefab;
-
-    [Header("블록 체크용 (반 사이즈)")]
-    public Vector3 blockHalfExtents = Vector3.one * 0.45f; 
-
-    private const float GhostPositionEpsilon = 0.001f;
+    public Vector3 blockHalfExtents = Vector3.one * 0.45f;
 
     private Camera _cam;
     private UIInventory _uiInv;
     private Inventory _inventory;
+    private InventoryPanelController _inventoryPanel;
 
     private GameObject _ghostInstance;
-    private Vector3 _currentGhostPos;
-    private bool _ghostActive = false;
-
-    private bool _lastGhostActive = false;
-    private Vector3 _lastGhostPos;
 
     void Awake()
     {
         _cam = Camera.main;
         _uiInv = FindObjectOfType<UIInventory>();
         _inventory = FindObjectOfType<Inventory>();
+        _inventoryPanel = FindObjectOfType<InventoryPanelController>();
 
         if (ghostPrefab != null)
         {
             _ghostInstance = Instantiate(ghostPrefab);
             _ghostInstance.SetActive(false);
-            var coll = _ghostInstance.GetComponent<Collider>();
-            if (coll != null) Destroy(coll);
-            var rb = _ghostInstance.GetComponent<Rigidbody>();
-            if (rb != null) Destroy(rb);
-        }
 
-        _lastGhostPos = Vector3.positiveInfinity;
+            if (_ghostInstance.TryGetComponent(out Collider c)) Destroy(c);
+            if (_ghostInstance.TryGetComponent(out Rigidbody r)) Destroy(r);
+        }
     }
 
     void Update()
     {
+        if (_inventoryPanel != null && _inventoryPanel.panel.activeSelf)
+        {
+            SetGhost(false);
+            return;
+        }
+
         HandleHotkeys();
         UpdateGhost();
 
-        if (Input.GetMouseButtonDown(1) && _ghostActive)
+        if (Input.GetMouseButtonDown(1))
         {
             TryPlaceBlock();
         }
@@ -63,15 +62,10 @@ public class PlayerBuilder : MonoBehaviour
     void HandleHotkeys()
     {
         if (_uiInv == null) return;
-        int slotCount = _uiInv.slots.Length;
 
-        for (int i = 0; i < slotCount && i < 10; i++)
+        for (int i = 0; i < _uiInv.slots.Length && i < 8; i++)
         {
-            KeyCode kc;
-            if (i == 9) kc = KeyCode.Alpha0;
-            else kc = KeyCode.Alpha1 + i;
-
-            if (Input.GetKeyDown(kc))
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
                 _uiInv.ToggleSelectSlot(i);
                 break;
@@ -79,178 +73,90 @@ public class PlayerBuilder : MonoBehaviour
         }
     }
 
-    private bool IsPlaceableBlock(BlockType? bt)
-    {
-        if (bt == null) return false;
-        return bt == BlockType.Dirt || bt == BlockType.Grass || bt == BlockType.Water;
-    }
-
     void UpdateGhost()
     {
-        bool shouldBeActive = false;
-        Vector3 computedPos = Vector3.zero;
-
-        if (_uiInv == null || _inventory == null || _ghostInstance == null)
+        if (!TryGetPlacePosition(out Vector3 pos))
         {
-            SetGhostActive(false);
+            SetGhost(false);
             return;
         }
 
-        int selIndex = _uiInv.selectedIndex;
-        if (selIndex < 0 || _uiInv.GetSelectedCount() <= 0)
-        {
-            SetGhostActive(false);
-            return;
-        }
-
-        var bt = _uiInv.GetSelectedBlockType();
-        if (!IsPlaceableBlock(bt))
-        {
-            // 선택된 아이템이 블록이 아님 -> ghost 비활성화
-            SetGhostActive(false);
-            return;
-        }
-
-        // 기존 Raycast & overlap 검사 계속 (placePos 계산)
-        Ray ray = _cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        if (Physics.Raycast(ray, out var hit, rayDistance, hitMask))
-        {
-            var hitBlock = hit.collider.GetComponent<Block>();
-            if (hitBlock == null)
-            {
-                SetGhostActive(false);
-                return;
-            }
-
-            Vector3 placePos = hit.point + hit.normal * 0.5f;
-            placePos = new Vector3(Mathf.Round(placePos.x), Mathf.Round(placePos.y), Mathf.Round(placePos.z));
-
-            if (Vector3.Distance(_cam.transform.position, placePos) > rayDistance + 0.01f)
-            {
-                SetGhostActive(false);
-                return;
-            }
-
-            // 충돌 검사 동일
-            Vector3 smallHalf = blockHalfExtents * 0.9f;
-            Collider[] overlaps = Physics.OverlapBox(placePos, smallHalf, Quaternion.identity, hitMask);
-            bool occupied = false;
-            foreach (var c in overlaps)
-            {
-                if (c == null) continue;
-                if (c.GetComponent<Block>() != null)
-                {
-                    occupied = true;
-                    break;
-                }
-            }
-            if (occupied)
-            {
-                SetGhostActive(false);
-                return;
-            }
-
-            computedPos = placePos;
-            shouldBeActive = true;
-        }
-        else
-        {
-            shouldBeActive = false;
-        }
-
-        if (shouldBeActive)
-        {
-            if (_lastGhostPos == Vector3.positiveInfinity || Vector3.Distance(_lastGhostPos, computedPos) > GhostPositionEpsilon)
-            {
-                _ghostInstance.transform.position = computedPos;
-                _lastGhostPos = computedPos;
-            }
-        }
-
-        if (_lastGhostActive != shouldBeActive)
-        {
-            _ghostInstance.SetActive(shouldBeActive);
-            _lastGhostActive = shouldBeActive;
-        }
-
-        _ghostActive = shouldBeActive;
+        _ghostInstance.transform.position = pos;
+        SetGhost(true);
     }
 
-    void SetGhostActive(bool active)
+    void SetGhost(bool active)
     {
-        if (_ghostInstance == null) return;
-        if (_lastGhostActive == active) return;
-        _ghostInstance.SetActive(active);
-        _lastGhostActive = active;
-        if (!active)
-            _lastGhostPos = Vector3.positiveInfinity;
+        if (_ghostInstance != null)
+            _ghostInstance.SetActive(active);
     }
 
     void TryPlaceBlock()
     {
-        if (_uiInv == null || _inventory == null) return;
-        var bt = _uiInv.GetSelectedBlockType();
-        if (!IsPlaceableBlock(bt))
+        Debug.Log("TryPlaceBlock CALLED");
+
+        if (!TryGetPlacePosition(out Vector3 pos))
         {
-            Debug.Log("[Builder] 선택된 아이템은 블록이 아님. 설치 불가.");
+            Debug.Log("Place failed: no valid position");
             return;
         }
 
-        Vector3 smallHalf = blockHalfExtents * 0.9f;
-        Collider[] overlaps = Physics.OverlapBox(_lastGhostPos, smallHalf, Quaternion.identity, hitMask);
-        foreach (var c in overlaps)
+        var bt = _uiInv.GetSelectedBlockType();
+        if (!IsPlaceableBlock(bt)) return;
+
+        if (!_inventory.Consume(bt.Value, 1))
         {
-            if (c == null) continue;
-
-            if (c.GetComponent<Block>() != null)
-            {
-                Debug.Log("[Builder] 설치 위치에 블록이 이미 있습니다.");
-                return;
-            }
-
-            if (c.CompareTag("Player") || c.GetComponent<PlayerController>() != null)
-            {
-                Debug.Log("[Builder] 플레이어와 겹쳐 블록을 설치할 수 없습니다.");
-                return;
-            }
+            Debug.Log("Inventory consume failed");
+            return;
         }
 
         GameObject prefab = GetPrefabForBlockType(bt.Value);
-        if (prefab == null)
+        Instantiate(prefab, pos, Quaternion.identity);
+
+        _uiInv.RefreshAll();
+        Debug.Log("Block placed");
+    }
+
+    bool TryGetPlacePosition(out Vector3 placePos)
+    {
+        placePos = Vector3.zero;
+
+        if (_uiInv == null || _inventory == null) return false;
+        if (_uiInv.selectedIndex < 0 || _uiInv.GetSelectedCount() <= 0) return false;
+
+        var bt = _uiInv.GetSelectedBlockType();
+        if (!IsPlaceableBlock(bt)) return false;
+
+        Ray ray = _cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
+        if (!Physics.Raycast(ray, out var hit, rayDistance, hitMask))
+            return false;
+
+        placePos = hit.point + hit.normal * 0.5f;
+        placePos = new Vector3(
+            Mathf.Round(placePos.x),
+            Mathf.Round(placePos.y),
+            Mathf.Round(placePos.z)
+        );
+
+        foreach (var c in Physics.OverlapBox(placePos, blockHalfExtents))
         {
-            Debug.LogError("[Builder] 해당 블록 타입에 연결된 프리팹이 없습니다: " + bt.Value);
-            return;
+            if (c.GetComponent<Block>() != null)
+                return false;
         }
 
-        bool consumed = _uiInv.ConsumeOneFromSelected();
-        if (!consumed)
-        {
-            Debug.Log("[Builder] 인벤토리에서 소비 실패.");
-            return;
-        }
+        return true;
+    }
 
-        Vector3 place = new Vector3(Mathf.Round(_lastGhostPos.x), Mathf.Round(_lastGhostPos.y), Mathf.Round(_lastGhostPos.z));
-        GameObject go = Instantiate(prefab, place, Quaternion.identity);
+    bool IsPlaceableBlock(BlockType? bt)
+    {
+        if (bt == null) return false;
 
-        var blockComp = go.GetComponent<Block>();
-        if (blockComp == null)
-        {
-            blockComp = go.AddComponent<Block>();
-        }
-
-        if (go.GetComponent<Collider>() == null)
-        {
-            var bc = go.AddComponent<BoxCollider>();
-            bc.size = Vector3.one;
-        }
-
-        go.tag = "Block";
-
-        if (_uiInv.GetSelectedCount() <= 0)
-        {
-            _uiInv.Deselect();
-            SetGhostActive(false);
-        }
+        return bt == BlockType.Dirt
+            || bt == BlockType.Grass
+            || bt == BlockType.Water
+            || bt == BlockType.Stone
+            || bt == BlockType.Wood
+            || bt == BlockType.Diamond;
     }
 
     GameObject GetPrefabForBlockType(BlockType t)
@@ -260,14 +166,10 @@ public class PlayerBuilder : MonoBehaviour
             BlockType.Dirt => dirtPrefab,
             BlockType.Grass => grassPrefab,
             BlockType.Water => waterPrefab,
+            BlockType.Stone => stonePrefab,
+            BlockType.Wood => woodPrefab,
+            BlockType.Diamond => diamondPrefab,
             _ => null
         };
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        if (!Application.isPlaying) return;
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireCube(_lastGhostPos, blockHalfExtents * 2f);
     }
 }

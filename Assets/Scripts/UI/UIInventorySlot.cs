@@ -1,70 +1,72 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class UIInventorySlot : MonoBehaviour
+public class UIInventorySlot : MonoBehaviour,
+    IPointerDownHandler,
+    IPointerUpHandler,
+    IPointerEnterHandler,
+    IPointerExitHandler
 {
-    [Header("UI 요소")]
-    public Image slotBackground; 
+    public Image slotBackground;
     public Image iconImage;
     public TMP_Text countText;
 
-    [HideInInspector] public BlockType blockType;
-    [HideInInspector] public int count;
+    public InventorySlotData data;
+    private UIInventory owner;
 
-    private readonly Color backgroundNormal = Color.white;
-    private readonly Color backgroundSelected = new Color(1f, 0.85f, 0.0f, 1f); 
+    [Header("선택 색상")]
+    public Color normalColor = Color.white;
+    public Color selectedColor = Color.yellow;
 
-    void Reset()
+    public void Init(UIInventory inv)
     {
+        owner = inv;
+        data ??= new InventorySlotData();
+        SetSelected(false);
+        Refresh();
     }
 
-    public void SetItem(Sprite icon, int count, BlockType type = BlockType.Dirt)
+    public void Refresh()
     {
-        this.blockType = type;
-        this.count = count;
-
-        if (iconImage != null)
-        {
-            iconImage.enabled = (icon != null);
-            iconImage.sprite = icon;
-        }
-
-        if (slotBackground != null)
-            slotBackground.color = backgroundNormal;
-
-        countText.text = count > 1 ? count.ToString() : "";
-    }
-
-    public void Clear()
-    {
-        blockType = default;
-        count = 0;
-
-        if (iconImage != null)
+        if (data.IsEmpty)
         {
             iconImage.enabled = false;
-            iconImage.sprite = null;
+            countText.text = "";
         }
-        if (slotBackground != null)
-            slotBackground.color = backgroundNormal;
-
-        countText.text = "";
-    }
-
-    public void SetSelected(bool sel)
-    {
-        if (slotBackground != null)
-            slotBackground.color = sel ? backgroundSelected : backgroundNormal;
         else
         {
-            if (iconImage != null)
-                iconImage.color = sel ? Color.yellow : Color.white;
+            iconImage.enabled = true;
+            iconImage.sprite = owner.GetIcon(data.type);
+            countText.text = data.count > 1 ? data.count.ToString() : "";
         }
     }
 
-    public bool IsEmpty()
+    public void SetSelected(bool selected)
     {
-        return count <= 0;
+        if (slotBackground != null)
+            slotBackground.color = selected ? selectedColor : normalColor;
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (!data.IsEmpty)
+            owner.BeginDrag(this);
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        owner.EndDrag();
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        owner.SetHoverSlot(this);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        owner.ClearHoverSlot(this);
     }
 }

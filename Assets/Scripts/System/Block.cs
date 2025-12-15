@@ -1,12 +1,24 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public enum BlockType { Dirt, Grass, Water, Bedrock, Beef, Pork }
+public enum BlockType
+{
+    Dirt,
+    Grass,
+    Water,
+    Bedrock,
+    Beef,
+    Pork,
+    Stone,
+    Wood,
+    Leaves,
+    Diamond
+}
+
 public class Block : MonoBehaviour
 {
     [Header("Block Stat")]
     public BlockType type = BlockType.Dirt;
+
     public int maxHp = 3;
     [HideInInspector] public int hp;
 
@@ -39,7 +51,7 @@ public class Block : MonoBehaviour
 
         hp -= damage;
 
-        if (hp < 0)
+        if (hp <= 0) 
         {
             if (inven != null && dropCount > 0)
                 inven.Add(type, dropCount);
