@@ -20,7 +20,7 @@ public class NoiseVoxelMap : MonoBehaviour
     public int waterLevel = 4;
     [SerializeField] float noiseScale = 20f;
 
-    const int DIAMOND_COUNT = 30;
+    const int DIAMOND_COUNT = 50;
 
     List<Vector3Int> stonePositions = new();
     List<Vector2Int> treePositions = new();

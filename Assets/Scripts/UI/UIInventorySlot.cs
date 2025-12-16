@@ -5,7 +5,6 @@ using UnityEngine.EventSystems;
 
 public class UIInventorySlot : MonoBehaviour,
     IPointerDownHandler,
-    IPointerUpHandler,
     IPointerEnterHandler,
     IPointerExitHandler
 {
@@ -16,7 +15,6 @@ public class UIInventorySlot : MonoBehaviour,
     public InventorySlotData data;
     private UIInventory owner;
 
-    [Header("선택 색상")]
     public Color normalColor = Color.white;
     public Color selectedColor = Color.yellow;
 
@@ -51,13 +49,10 @@ public class UIInventorySlot : MonoBehaviour,
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (!data.IsEmpty)
-            owner.BeginDrag(this);
-    }
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        owner.EndDrag();
+        if (eventData.button == PointerEventData.InputButton.Left)
+            owner.OnSlotLeftClick(this);
+        else if (eventData.button == PointerEventData.InputButton.Right)
+            owner.OnSlotRightClick(this);
     }
 
     public void OnPointerEnter(PointerEventData eventData)

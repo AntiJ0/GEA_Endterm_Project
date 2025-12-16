@@ -61,6 +61,10 @@ public class PlayerController : MonoBehaviour
 
     Inventory inventory;
 
+    public float armorPercent;
+
+    bool inputLocked;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -96,6 +100,24 @@ public class PlayerController : MonoBehaviour
 
     void HandleMove()
     {
+        float h = 0f;
+        float v = 0f;
+
+        if (!inputLocked)
+        {
+            h = Input.GetAxis("Horizontal");
+            v = Input.GetAxis("Vertical");
+        }
+        Vector3 moveDir = transform.right * h + transform.forward * v;
+
+        if (!inputLocked && Input.GetButtonDown("Jump") && isGrounded)
+            velocity.y = Mathf.Sqrt(jumpPower * -2f * currentGravity);
+
+        if (!inputLocked && waterContactCount > 0 && Input.GetButton("Jump"))
+            velocity.y = floatUpSpeed;
+        else
+            velocity.y += currentGravity * Time.deltaTime;
+
         if (knockbackTimer > 0)
         {
             controller.Move(knockbackVelocity * Time.deltaTime);
@@ -106,10 +128,6 @@ public class PlayerController : MonoBehaviour
         isGrounded = controller.isGrounded;
         if (isGrounded && velocity.y < 0)
             velocity.y = -2f;
-
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
-        Vector3 moveDir = transform.right * h + transform.forward * v;
 
         float finalSpeed = moveSpeed;
 
@@ -134,6 +152,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleLook()
     {
+        if (inputLocked) return;
+
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
@@ -170,7 +190,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleInventoryEatInput()
     {
-        if (IsEating) return;
+            if (inputLocked) return;
+    if (IsEating) return;
 
         var uiInv = FindObjectOfType<UIInventory>();
         if (uiInv == null) return;
@@ -213,10 +234,14 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(int dmg, Vector3 attackerPos, float knockbackForce = 4f)
     {
-        curHp -= dmg;
+        float reduced = dmg - dmg * (armorPercent / 100f);
+        int finalDmg = Mathf.Max(1, Mathf.RoundToInt(reduced));
+
+        curHp -= finalDmg;
         if (curHp < 0) curHp = 0;
 
         UIPlayerStat.Instance?.RefreshHP(curHp, maxHp);
+        UIPlayerStat.Instance?.RefreshArmor(armorPercent);
 
         Vector3 dir = (transform.position - attackerPos);
         dir.y = 0.3f;
@@ -225,8 +250,7 @@ public class PlayerController : MonoBehaviour
         knockbackVelocity = dir * knockbackForce;
         knockbackTimer = knockbackDuration;
 
-        if (curHp <= 0)
-            Die();
+        if (curHp <= 0) Die();
     }
 
     void Die()
@@ -310,5 +334,16 @@ public class PlayerController : MonoBehaviour
                 starvationTimer = 0f;
             }
         }
+    }
+
+    public void SetArmor(float value)
+    {
+        armorPercent = Mathf.Clamp(value, 0f, 50f);
+        UIPlayerStat.Instance?.RefreshArmor(armorPercent);
+    }
+
+    public void SetInputLocked(bool locked)
+    {
+        inputLocked = locked;
     }
 }

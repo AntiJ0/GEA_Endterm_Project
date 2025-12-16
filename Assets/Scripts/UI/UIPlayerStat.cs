@@ -5,11 +5,11 @@ public class UIPlayerStat : MonoBehaviour
 {
     public static UIPlayerStat Instance;
 
-    [Header("HP")]
     public Slider hpBar;
 
-    [Header("Hunger")]
     public Slider hungerBar;
+
+    public Slider armorBar;
 
     void Awake()
     {
@@ -33,5 +33,13 @@ public class UIPlayerStat : MonoBehaviour
 
         hungerBar.maxValue = max;
         hungerBar.value = cur;
+    }
+
+    public void RefreshArmor(float value)
+    {
+        if (armorBar == null) return;
+
+        armorBar.maxValue = 50f;
+        armorBar.value = value;
     }
 }

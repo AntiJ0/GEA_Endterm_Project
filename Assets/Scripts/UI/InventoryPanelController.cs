@@ -25,7 +25,7 @@ public class InventoryPanelController : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        player.enabled = false;
+        player.SetInputLocked(true);
     }
 
     void Close()
@@ -33,11 +33,11 @@ public class InventoryPanelController : MonoBehaviour
         opened = false;
         panel.SetActive(false);
 
-        uiInventory.CancelDrag();
+        uiInventory.isDragging = false;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        player.enabled = true;
+        player.SetInputLocked(false);
     }
 }

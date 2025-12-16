@@ -50,7 +50,7 @@ MonoBehaviour:
   type: 6
   maxHp: 8
   hp: 0
-  dropCount: 0
+  dropCount: 1
   mineable: 1
 --- !u!33 &5999336742660040307
 MeshFilter:

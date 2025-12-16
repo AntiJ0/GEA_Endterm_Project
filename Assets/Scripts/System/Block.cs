@@ -11,7 +11,18 @@ public enum BlockType
     Stone,
     Wood,
     Leaves,
-    Diamond
+    Diamond,
+    Stick,
+
+    DiamondHelmet,
+    DiamondChestplate,
+    DiamondLeggings,
+    DiamondBoots,
+
+    StonePickaxe,
+    DiamondPickaxe,
+    StoneSword,
+    DiamondSword
 }
 
 public class Block : MonoBehaviour

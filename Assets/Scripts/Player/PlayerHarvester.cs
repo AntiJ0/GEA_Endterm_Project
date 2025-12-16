@@ -25,6 +25,10 @@ public class PlayerHarvester : MonoBehaviour
 
     void Update()
     {
+        var panel = FindObjectOfType<InventoryPanelController>();
+        if (panel != null && panel.panel.activeSelf)
+            return;
+
         if (Input.GetMouseButtonDown(0))
         {
             holding = true;
@@ -49,44 +53,34 @@ public class PlayerHarvester : MonoBehaviour
     {
         if (_cam == null) return;
 
-        Vector3 origin = _cam.transform.position;
-        Vector3 dir = _cam.transform.forward;
+        int blockDamage = toolDamage;
+        int entityDamage = toolDamage;
 
-        RaycastHit[] hits = Physics.RaycastAll(
-            origin,
-            dir,
-            rayDistance,
-            hitMask,
-            QueryTriggerInteraction.Collide
-        );
+        var uiInv = FindObjectOfType<UIInventory>();
+        var bt = uiInv?.GetSelectedBlockType();
 
-        if (hits.Length == 0)
-            return;
-
-        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
-
-        foreach (var hit in hits)
+        if (bt != null)
         {
-            if (hit.collider.transform.IsChildOf(transform))
-                continue;
+            if (ItemStatData.IsPickaxe(bt.Value))
+                blockDamage = ItemStatData.GetBlockDamage(bt.Value);
 
-            AnimalBase animal = hit.collider.GetComponentInParent<AnimalBase>();
-            if (animal != null)
-            {
-                animal.TakeDamage(toolDamage, transform.position);
-                Debug.Log("[Harvester] Hit Animal");
-                return;
-            }
+            if (ItemStatData.IsSword(bt.Value))
+                entityDamage = ItemStatData.GetEntityDamage(bt.Value);
+        }
 
-            if (instantOnlyMonster)
-                continue;
+        Ray ray = new Ray(_cam.transform.position, _cam.transform.forward);
+        if (!Physics.Raycast(ray, out var hit, rayDistance, hitMask)) return;
 
-            if (hit.collider.TryGetComponent(out Block block))
-            {
-                block.Hit(toolDamage, inventory);
-                Debug.Log("[Harvester] Hit Block");
-                return;
-            }
+        var animal = hit.collider.GetComponentInParent<AnimalBase>();
+        if (animal != null)
+        {
+            animal.TakeDamage(entityDamage, transform.position);
+            return;
+        }
+
+        if (!instantOnlyMonster && hit.collider.TryGetComponent(out Block block))
+        {
+            block.Hit(blockDamage, inventory);
         }
     }
 }
