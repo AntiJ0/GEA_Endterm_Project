@@ -111,39 +111,67 @@ public class UIInventory : MonoBehaviour
     {
         if (dragIcon.gameObject.activeSelf)
             dragIcon.transform.position = Input.mousePosition;
+
+        HandleNumberKeySelection();
     }
 
     public Sprite GetIcon(BlockType t)
         => icons.TryGetValue(t, out var s) ? s : null;
 
+    // =========================================================
+    // ★ FIX 핵심: 슬롯 재배치 제거 / 수량 동기화 방식
+    // =========================================================
     public void RefreshAll()
     {
         if (isDragging) return;
-
-        foreach (var s in outerSlots) { s.data.Clear(); s.Refresh(); }
-        foreach (var s in innerSlots) { s.data.Clear(); s.Refresh(); }
-
         if (inventory == null) return;
 
-        int index = 0;
-        foreach (var pair in inventory.GetAll())
-        {
-            UIInventorySlot slot = null;
+        var invData = inventory.GetAll();
 
-            if (index < outerSlots.Length) slot = outerSlots[index];
+        // 1. 기존 슬롯 수량 동기화
+        foreach (var s in outerSlots)
+        {
+            if (s.data.IsEmpty) continue;
+
+            if (invData.TryGetValue(s.data.type, out int count))
+            {
+                s.data.count = count;
+            }
             else
             {
-                int innerIndex = index - outerSlots.Length;
-                if (innerIndex < innerSlots.Length) slot = innerSlots[innerIndex];
+                s.data.Clear();
             }
-
-            if (slot == null) break;
-
-            slot.data.Set(pair.Key, pair.Value);
-            slot.Refresh();
-            index++;
+            s.Refresh();
         }
 
+        foreach (var s in innerSlots)
+        {
+            if (s.data.IsEmpty) continue;
+
+            if (invData.TryGetValue(s.data.type, out int count))
+            {
+                s.data.count = count;
+            }
+            else
+            {
+                s.data.Clear();
+            }
+            s.Refresh();
+        }
+
+        // 2. UI에 없는 새 아이템만 빈 슬롯에 추가
+        foreach (var pair in invData)
+        {
+            if (HasSlotWithType(pair.Key)) continue;
+
+            UIInventorySlot empty = GetFirstEmptySlot();
+            if (empty == null) break;
+
+            empty.data.Set(pair.Key, pair.Value);
+            empty.Refresh();
+        }
+
+        // 3. 선택 슬롯 유효성 체크
         if (selectedIndex >= 0 &&
             selectedIndex < outerSlots.Length &&
             outerSlots[selectedIndex].data.IsEmpty)
@@ -151,6 +179,30 @@ public class UIInventory : MonoBehaviour
             Deselect();
         }
     }
+
+    bool HasSlotWithType(BlockType t)
+    {
+        foreach (var s in outerSlots)
+            if (!s.data.IsEmpty && s.data.type == t) return true;
+
+        foreach (var s in innerSlots)
+            if (!s.data.IsEmpty && s.data.type == t) return true;
+
+        return false;
+    }
+
+    UIInventorySlot GetFirstEmptySlot()
+    {
+        foreach (var s in outerSlots)
+            if (s.data.IsEmpty) return s;
+
+        foreach (var s in innerSlots)
+            if (s.data.IsEmpty) return s;
+
+        return null;
+    }
+
+    // ================= 기존 코드 그대로 =================
 
     public void ToggleSelectSlot(int index)
     {
@@ -188,7 +240,6 @@ public class UIInventory : MonoBehaviour
     }
 
     public void SetHoverSlot(UIInventorySlot slot) => hoverSlot = slot;
-
     public void ClearHoverSlot(UIInventorySlot slot)
     {
         if (hoverSlot == slot) hoverSlot = null;
@@ -612,5 +663,28 @@ public class UIInventory : MonoBehaviour
             if (!craftInputSlots[i].data.IsEmpty && craftInputSlots[i].data.type == type)
                 sum += craftInputSlots[i].data.count;
         return sum;
+    }
+
+    void HandleNumberKeySelection()
+    {
+        if (isDragging) return;
+
+        for (int i = 0; i < outerSlots.Length && i < 9; i++)
+        {
+            KeyCode key = KeyCode.Alpha1 + i;
+            if (Input.GetKeyDown(key))
+            {
+                ToggleSelectSlot(i);
+                return;
+            }
+        }
+    }
+
+    public BlockType? GetSelectedTypeOnly()
+    {
+        if (selectedIndex < 0 || selectedIndex >= outerSlots.Length)
+            return null;
+
+        return outerSlots[selectedIndex].data.type;
     }
 }

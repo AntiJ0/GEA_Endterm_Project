@@ -20,7 +20,7 @@ public class NoiseVoxelMap : MonoBehaviour
     public int waterLevel = 4;
     [SerializeField] float noiseScale = 20f;
 
-    const int DIAMOND_COUNT = 50;
+    const int DIAMOND_COUNT = 200;
 
     List<Vector3Int> stonePositions = new();
     List<Vector2Int> treePositions = new();
@@ -176,7 +176,7 @@ public class NoiseVoxelMap : MonoBehaviour
             var pos = candidates[idx];
             candidates.RemoveAt(idx);
 
-            PlaceDiamond(pos.x, pos.y, pos.z);
+            ReplaceStoneWithDiamond(pos.x, pos.y, pos.z);
         }
     }
 
@@ -184,5 +184,27 @@ public class NoiseVoxelMap : MonoBehaviour
     {
         var go = Instantiate(blockPrefabDiamond, new Vector3(x, y, z), Quaternion.identity, transform);
         go.GetComponent<Block>().type = BlockType.Diamond;
+    }
+
+    void ReplaceStoneWithDiamond(int x, int y, int z)
+    {
+        Vector3 pos = new Vector3(x, y, z);
+
+        Collider[] hits = Physics.OverlapBox(
+            pos,
+            Vector3.one * 0.1f
+        );
+
+        foreach (var h in hits)
+        {
+            var block = h.GetComponent<Block>();
+            if (block != null && block.type == BlockType.Stone)
+            {
+                Destroy(block.gameObject);
+                break;
+            }
+        }
+
+        PlaceDiamond(x, y, z);
     }
 }

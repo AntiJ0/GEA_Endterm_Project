@@ -147,9 +147,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3673134187032797014}
   - component: {fileID: 8938489502026191005}
+  - component: {fileID: 733321309863933666}
   - component: {fileID: 2758327303007638085}
   - component: {fileID: 2520965240448906959}
-  - component: {fileID: 733321309863933666}
   - component: {fileID: 8256030691717784896}
   - component: {fileID: 8818796453347029526}
   m_Layer: 0
@@ -201,37 +201,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.8, z: 0}
---- !u!114 &2758327303007638085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6700163826174235856}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c33091870aea5429db8d7c19aba31e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &2520965240448906959
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6700163826174235856}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cde14dc2766db1441be8303a699bcf30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rayDistance: 5
-  hitMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  toolDamage: 1
-  hitCooldown: 1
-  inventory: {fileID: 2758327303007638085}
 --- !u!114 &733321309863933666
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -263,6 +232,37 @@ MonoBehaviour:
   ghostPrefab: {fileID: 7315503544620595629, guid: e385061d038142c4d9acb5d11ff19591,
     type: 3}
   blockHalfExtents: {x: 0.45, y: 0.45, z: 0.45}
+--- !u!114 &2758327303007638085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6700163826174235856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22c33091870aea5429db8d7c19aba31e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2520965240448906959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6700163826174235856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde14dc2766db1441be8303a699bcf30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayDistance: 5
+  hitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  toolDamage: 1
+  hitCooldown: 1
+  inventory: {fileID: 2758327303007638085}
 --- !u!114 &8256030691717784896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -292,6 +292,8 @@ MonoBehaviour:
   starvationDamageInterval: 5
   hungerDecreaseInterval: 10
   regenHpInterval: 1
+  armorPercent: 0
+  gameOverPanel: {fileID: 0}
 --- !u!65 &8818796453347029526
 BoxCollider:
   m_ObjectHideFlags: 0

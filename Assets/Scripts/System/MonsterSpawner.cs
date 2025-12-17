@@ -13,16 +13,24 @@ public class MonsterSpawner : MonoBehaviour
     [Range(0f, 1f)]
     public float spawnChance = 0.8f;
 
+    [Header("Spawn limit")]
+    public int maxTotalMonsters = 50;
+
+    [Header("UI")]
+    public GameObject gameClearPanel;
+
     [Header("Spawn height scan")]
     public float scanStartY = 50f;
     public LayerMask blockMask = ~0;
 
     Bounds boundaryBounds;
 
+    int totalSpawned = 0;
+    int aliveMonsters = 0;
+    bool cleared = false;
+
     void Start()
     {
-        Debug.Log("[MonsterSpawner] Start() 호출됨.");
-
         if (boundaryRoot == null)
         {
             Debug.LogError("[MonsterSpawner] boundaryRoot is null!");
@@ -30,11 +38,10 @@ public class MonsterSpawner : MonoBehaviour
             return;
         }
 
-        Debug.Log("[MonsterSpawner] 경계 계산 중...");
-        CalculateBounds();
-        Debug.Log("[MonsterSpawner] 경계 계산 완료: " + boundaryBounds);
+        if (gameClearPanel != null)
+            gameClearPanel.SetActive(false);
 
-        Debug.Log("[MonsterSpawner] SpawnerLoop 시작.");
+        CalculateBounds();
         StartCoroutine(SpawnerLoop());
     }
 
@@ -43,7 +50,6 @@ public class MonsterSpawner : MonoBehaviour
         var colliders = boundaryRoot.GetComponentsInChildren<Collider>();
         if (colliders.Length == 0)
         {
-            Debug.LogWarning("[MonsterSpawner] Collider 없음 → Transform scale 사용");
             boundaryBounds = new Bounds(boundaryRoot.position, boundaryRoot.localScale);
             return;
         }
@@ -55,21 +61,16 @@ public class MonsterSpawner : MonoBehaviour
 
     IEnumerator SpawnerLoop()
     {
-        while (true)
+        while (!cleared)
         {
-            float wait = Random.Range(spawnIntervalMin, spawnIntervalMax);
-            Debug.Log($"[MonsterSpawner] {wait:F1}초 대기 후 스폰 시도");
+            if (totalSpawned >= maxTotalMonsters)
+                yield break;
 
+            float wait = Random.Range(spawnIntervalMin, spawnIntervalMax);
             yield return new WaitForSeconds(wait);
 
-            float roll = Random.value;
-            Debug.Log($"[MonsterSpawner] 확률 체크 roll={roll:F2}");
-
-            if (roll > spawnChance)
-            {
-                Debug.Log("[MonsterSpawner] 스폰 실패");
+            if (Random.value > spawnChance)
                 continue;
-            }
 
             TrySpawnOne();
         }
@@ -77,54 +78,77 @@ public class MonsterSpawner : MonoBehaviour
 
     void TrySpawnOne()
     {
-        Debug.Log("[MonsterSpawner] TrySpawnOne()");
+        if (totalSpawned >= maxTotalMonsters)
+            return;
 
         if (spawnTypes == null || spawnTypes.Length == 0)
-        {
-            Debug.LogError("[MonsterSpawner] spawnTypes 비어있음");
             return;
-        }
 
         float x = Random.Range(boundaryBounds.min.x, boundaryBounds.max.x);
         float z = Random.Range(boundaryBounds.min.z, boundaryBounds.max.z);
 
         Vector3 start = new Vector3(x, boundaryBounds.max.y + scanStartY, z);
 
-        if (Physics.Raycast(start, Vector3.down, out RaycastHit hit,
+        if (!Physics.Raycast(start, Vector3.down, out RaycastHit hit,
             boundaryBounds.size.y + scanStartY + 5f, blockMask))
+            return;
+
+        var block = hit.collider.GetComponent<Block>();
+        if (block == null || block.type == BlockType.Water)
+            return;
+
+        Vector3 spawnPos = hit.collider.transform.position + Vector3.up;
+        spawnPos = new Vector3(
+            Mathf.Round(spawnPos.x),
+            Mathf.Round(spawnPos.y),
+            Mathf.Round(spawnPos.z));
+
+        if (!boundaryBounds.Contains(spawnPos))
+            return;
+
+        var at = spawnTypes[Random.Range(0, spawnTypes.Length)];
+        GameObject go = Instantiate(
+            at.prefab,
+            spawnPos,
+            at.useRandomRotation
+                ? Quaternion.Euler(0, Random.Range(0f, 360f), 0)
+                : Quaternion.identity);
+
+        var monster = go.GetComponent<MonsterBase>();
+        if (monster != null)
         {
-            var block = hit.collider.GetComponent<Block>();
-            if (block == null || block.type == BlockType.Water)
-            {
-                Debug.Log("[MonsterSpawner] Block 아님 or 물 → 취소");
-                return;
-            }
+            monster.data = at;
+            monster.SetSpawner(this);
 
-            Vector3 spawnPos = hit.collider.transform.position + Vector3.up;
-            spawnPos = new Vector3(
-                Mathf.Round(spawnPos.x),
-                Mathf.Round(spawnPos.y),
-                Mathf.Round(spawnPos.z));
-
-            if (!boundaryBounds.Contains(spawnPos))
-            {
-                Debug.Log("[MonsterSpawner] 경계 밖 → 취소");
-                return;
-            }
-
-            var at = spawnTypes[Random.Range(0, spawnTypes.Length)];
-            GameObject go = Instantiate(
-                at.prefab,
-                spawnPos,
-                at.useRandomRotation
-                    ? Quaternion.Euler(0, Random.Range(0f, 360f), 0)
-                    : Quaternion.identity);
-
-            var ab = go.GetComponent<AnimalBase>();
-            if (ab != null)
-                ab.data = at;
-
-            Debug.Log("[MonsterSpawner] 몬스터 스폰 완료");
+            totalSpawned++;
+            aliveMonsters++;
         }
+    }
+
+    public void OnMonsterDied()
+    {
+        aliveMonsters = Mathf.Max(0, aliveMonsters - 1);
+
+        if (!cleared &&
+            totalSpawned >= maxTotalMonsters &&
+            aliveMonsters == 0)
+        {
+            ClearGame();
+        }
+    }
+
+    void ClearGame()
+    {
+        cleared = true;
+
+        Time.timeScale = 0f;
+
+        if (gameClearPanel != null)
+            gameClearPanel.SetActive(true);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Debug.Log("[MonsterSpawner] GAME CLEAR!");
     }
 }

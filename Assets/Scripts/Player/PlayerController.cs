@@ -65,6 +65,8 @@ public class PlayerController : MonoBehaviour
 
     bool inputLocked;
 
+    public GameObject gameOverPanel;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -257,13 +259,13 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Player Dead");
 
-        Time.timeScale = 0f;
-
-        GameObject gameOverPanel = GameObject.Find("GameOverPanel");
         if (gameOverPanel != null)
-        {
             gameOverPanel.SetActive(true);
-        }
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Time.timeScale = 0f;
     }
 
     void HandleHungerAndRegen()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerBuilder : MonoBehaviour
 {
@@ -18,117 +19,113 @@ public class PlayerBuilder : MonoBehaviour
     public GameObject ghostPrefab;
     public Vector3 blockHalfExtents = Vector3.one * 0.45f;
 
-    private Camera _cam;
-    private UIInventory _uiInv;
-    private Inventory _inventory;
-    private InventoryPanelController _inventoryPanel;
+    Camera cam;
+    UIInventory uiInv;
+    Inventory inventory;
+    InventoryPanelController inventoryPanel;
 
-    private GameObject _ghostInstance;
+    GameObject ghost;
 
     void Awake()
     {
-        _cam = Camera.main;
-        _uiInv = FindObjectOfType<UIInventory>();
-        _inventory = FindObjectOfType<Inventory>();
-        _inventoryPanel = FindObjectOfType<InventoryPanelController>();
+        cam = Camera.main;
+        uiInv = FindObjectOfType<UIInventory>();
+        inventory = FindObjectOfType<Inventory>();
+        inventoryPanel = FindObjectOfType<InventoryPanelController>();
 
         if (ghostPrefab != null)
         {
-            _ghostInstance = Instantiate(ghostPrefab);
-            _ghostInstance.SetActive(false);
+            ghost = Instantiate(ghostPrefab);
+            ghost.SetActive(false);
 
-            if (_ghostInstance.TryGetComponent(out Collider c)) Destroy(c);
-            if (_ghostInstance.TryGetComponent(out Rigidbody r)) Destroy(r);
+            if (ghost.TryGetComponent(out Collider c)) Destroy(c);
+            if (ghost.TryGetComponent(out Rigidbody r)) Destroy(r);
         }
     }
 
     void Update()
     {
-        if (_inventoryPanel != null && _inventoryPanel.panel.activeSelf)
+        if (inventoryPanel != null && inventoryPanel.panel.activeSelf)
         {
             SetGhost(false);
             return;
         }
 
-        HandleHotkeys();
         UpdateGhost();
 
         if (Input.GetMouseButtonDown(1))
-        {
             TryPlaceBlock();
-        }
-    }
-
-    void HandleHotkeys()
-    {
-        if (_uiInv == null) return;
-
-        for (int i = 0; i < _uiInv.slots.Length && i < 8; i++)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
-            {
-                _uiInv.ToggleSelectSlot(i);
-                break;
-            }
-        }
     }
 
     void UpdateGhost()
     {
+        if (ghost == null)
+            return;
+
         if (!TryGetPlacePosition(out Vector3 pos))
         {
             SetGhost(false);
             return;
         }
 
-        _ghostInstance.transform.position = pos;
+        ghost.transform.position = pos;
         SetGhost(true);
     }
 
     void SetGhost(bool active)
     {
-        if (_ghostInstance != null)
-            _ghostInstance.SetActive(active);
+        if (ghost != null)
+            ghost.SetActive(active);
     }
 
     void TryPlaceBlock()
     {
-        Debug.Log("TryPlaceBlock CALLED");
+        if (EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        var bt = uiInv.GetSelectedTypeOnly();
+        if (!IsPlaceableBlock(bt))
+            return;
+
+        if (inventory.GetCount(bt.Value) <= 0)
+            return;
 
         if (!TryGetPlacePosition(out Vector3 pos))
-        {
-            Debug.Log("Place failed: no valid position");
             return;
-        }
 
-        var bt = _uiInv.GetSelectedBlockType();
-        if (!IsPlaceableBlock(bt)) return;
-
-        if (!_inventory.Consume(bt.Value, 1))
-        {
-            Debug.Log("Inventory consume failed");
+        if (!inventory.Consume(bt.Value, 1))
             return;
-        }
 
-        GameObject prefab = GetPrefabForBlockType(bt.Value);
-        Instantiate(prefab, pos, Quaternion.identity);
-
-        _uiInv.RefreshAll();
-        Debug.Log("Block placed");
+        Instantiate(GetPrefabForBlockType(bt.Value), pos, Quaternion.identity);
     }
 
     bool TryGetPlacePosition(out Vector3 placePos)
     {
         placePos = Vector3.zero;
 
-        if (_uiInv == null || _inventory == null) return false;
-        if (_uiInv.selectedIndex < 0 || _uiInv.GetSelectedCount() <= 0) return false;
+        if (uiInv == null)
+            uiInv = FindObjectOfType<UIInventory>();
 
-        var bt = _uiInv.GetSelectedBlockType();
-        if (!IsPlaceableBlock(bt)) return false;
+        if (inventory == null)
+            inventory = FindObjectOfType<Inventory>();
 
-        Ray ray = _cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
-        if (!Physics.Raycast(ray, out var hit, rayDistance, hitMask))
+        if (uiInv == null || inventory == null)
+            return false;
+
+        var bt = uiInv.GetSelectedTypeOnly();
+        if (!IsPlaceableBlock(bt))
+            return false;
+
+        if (cam == null)
+        {
+            cam = Camera.main;
+            if (cam == null)
+                return false;
+        }
+
+        Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
+        if (!Physics.Raycast(ray, out RaycastHit hit, rayDistance, hitMask))
             return false;
 
         placePos = hit.point + hit.normal * 0.5f;

@@ -253,7 +253,7 @@ public class AnimalBase : MonoBehaviour
                 m.color = Color.white;
     }
 
-    void Die()
+    protected virtual void Die()
     {
         if (Random.value <= data.dropChance && data.dropType != BlockType.Bedrock)
         {

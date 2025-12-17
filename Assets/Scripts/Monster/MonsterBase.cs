@@ -12,6 +12,19 @@ public class MonsterBase : AnimalBase
 
     protected float nextAttackTime = 0f;
 
+    MonsterSpawner spawner;
+
+    public void SetSpawner(MonsterSpawner s)
+    {
+        spawner = s;
+    }
+
+    protected override void Die()
+    {
+        spawner?.OnMonsterDied();
+        base.Die();
+    }
+
     protected bool PlayerInRange()
     {
         if (player == null) return false;

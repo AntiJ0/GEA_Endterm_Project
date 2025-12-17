@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 6
-  maxHp: 8
+  maxHp: 6
   hp: 0
   dropCount: 1
   mineable: 1

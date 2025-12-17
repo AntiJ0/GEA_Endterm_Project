@@ -73,7 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e691db71c1e7c6246bb160482e999e88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data: {fileID: 11400000, guid: bbbd731b756da1c439a2844ad53831ab, type: 2}
+  data: {fileID: 11400000, guid: 6b7b7009bbc21aa449fecf4821ef3028, type: 2}
   minWanderTime: 1.5
   maxWanderTime: 4
   idleChance: 0.3
